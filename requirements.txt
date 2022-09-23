@@ -1,0 +1,10 @@
+sqlalchemy
+psycopg2
+flask
+flask_restful
+pixivpy-async
+pixivpy
+vk_api
+requests
+loguru
+aiohttp_socks
