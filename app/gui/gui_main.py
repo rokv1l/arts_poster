@@ -12,6 +12,7 @@ from tkinter import Tk, Button, Frame, Entry, Label, Canvas, Menu, StringVar, In
 
 import config
 from core import vk, pixiv
+from src.database import session_maker, Art
 
 delimiters = []
 cache = {}
@@ -42,6 +43,8 @@ def main():
     selected_tag = StringVar()
     global selected_user
     selected_user = StringVar()
+    global user_id
+    user_id = StringVar()
     
     menu = Menu(tearoff=0)
     menu.add_command(label="Открыть", command=open_full_art)
@@ -128,6 +131,7 @@ def draw_settings_areas(window):
     Label(settings_areas[1], text=f'{" "*12}Фильтр :', name=f'text_{uuid4().hex[:6]}', bg='#9c9c9c').place(x=10, y=30)
     Label(settings_areas[1], text=f'Сделать чекпоинт для фильтра', name=f'text_{uuid4().hex[:6]}', bg='#9c9c9c').place(x=10, y=60)
     Label(settings_areas[0], text=f'Размер буфера:\n\n{" "*21}Тег:\n\n{" "*18}Текст :', name=f'text_{uuid4().hex[:6]}', bg='#9c9c9c').place(x=10, y=30)
+    Label(settings_areas[3], text='id пользователя:', bg='#9c9c9c').place(x=10, y=30)
     
     Entry(settings_areas[0], textvariable=buffer_size).place(x=110, y=30, width=100)
     Entry(settings_areas[0], textvariable=selected_tag).place(x=110, y=60, width=100)
@@ -136,12 +140,23 @@ def draw_settings_areas(window):
     cache['text_field'] = text
     
     Entry(settings_areas[1]).place(x=110, y=30, width=100)
+    Entry(settings_areas[3], textvariable=user_id).place(x=110, y=30, width=100)
 
     Button(settings_areas[2], text='Очистить отложенные посты', command=del_postpone_wall_wrap, bg='red').place(x=10, y=27, width=200)
     Button(settings_areas[2], text='Запостить', command=create_new_posts_wrap, bg='green').place(x=10, y=57, width=200)
     Button(settings_areas[2], text='Заполнить из подписок', command=download_by_user_b_handler).place(x=10, y=87, width=200)
     Button(settings_areas[2], text='Заполнить по тегу', command=download_by_tag_b_handler).place(x=10, y=117, width=200)
-    Button(settings_areas[3], text='Обновить данные подписок', command=following_demon_wrap).place(x=10, y=27, width=200)
+    Button(settings_areas[3], text='Обновить данные подписок', command=following_demon_wrap).place(x=10, y=87, width=200)
+    Button(settings_areas[3], text='Удалить работы автора из базы', command=block_author_arts).place(x=10, y=57, width=200)
+
+
+def block_author_arts():
+    with session_maker() as session:
+        arts = session.query(Art).filter(Art.author_id==user_id).all()
+        for art in arts:
+            art.posted = True
+        
+        session.commit()
 
 
 def following_demon_wrap():
